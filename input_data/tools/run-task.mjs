@@ -26,6 +26,8 @@ try{
   for(const file of [sourceDb,rulesPath,windowPath,sqlPath])if(!fs.existsSync(file))throw new Error('缺少窗口输入或完成SQL '+path.relative(taskRoot,file));
   const rules=JSON.parse(fs.readFileSync(rulesPath,'utf8')),window=JSON.parse(fs.readFileSync(windowPath,'utf8'));
   if(!Array.isArray(rules.exceptions)||rules.exceptions.length<1||!rules.run_at)throw new Error('保留条款结构无效');
+  if(new Set(rules.exceptions.map(item=>item.exception_id)).size!==rules.exceptions.length)throw new Error('保留条款编号重复');
+  if(rules.exceptions.some(item=>!item.exception_id||!item.rule_kind||!item.scope||!item.retain_reason||!item.retain_until))throw new Error('保留条款缺少必填字段');
   if(!window.window_id||!window.scheduled_start_utc||!window.approver_role)throw new Error('删除窗口说明不完整');
   const sqlSource=fs.readFileSync(sqlPath,'utf8');if(/pending|请补全|\bTODO\b/i.test(sqlSource))throw new Error('交付SQL尚未完成');
   const version=spawnSync(sqliteBin,['--version'],{encoding:'utf8',timeout:10000});if(version.error||version.status!==0)throw new Error('找不到SQLite命令行程序');
