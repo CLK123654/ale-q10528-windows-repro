@@ -1,0 +1,85 @@
+总分100分
+
+1. 交付结构与SQLite入口
+分值：12分
+标准答案：完成SQL位于output/sql/rebuild_privacy_window.sql；入口正常结束并生成privacy_window.db、两份CSV和window_decision.json；结果库含retention_rule、object_action、retention_register、window_summary及六张源表。
+关键字段：交付路径、SQLite表名、入口退出状态、文件可读性。
+容差：CSV允许LF或CRLF；JSON缩进、SQLite页布局和无业务含义的行序可不同。
+失败边界：缺少完成SQL、结果库或任一声明交付；入口异常结束；结果库打不开或缺少必需表。
+可观察证据：交付路径清单、SQLite的sqlite_master、npm命令退出状态、文件解析结果。
+客观硬性标准：全部声明交付存在且可解析，主数据处理由SQLite完成，输出路径与任务要求一致。
+阈值：12分；满足全部硬性标准得满分，缺少任一核心交付或SQLite入口不可用得0分。
+优先级：Gate项
+所属层级：L1任务指令遵循层
+
+2. 删除请求范围与冻结源表
+分值：16分
+标准答案：object_action只覆盖request_type为delete且status为open的请求及其users、devices、orders、messages、audit_events对象；六张源表在结果库中与冻结快照逐表逐行一致。
+关键字段：request_id、request_type、status、user_id、object_type、object_id及六张源表全部字段。
+容差：没有业务顺序的查询结果允许按主键重排后比较；字段值不允许变化。
+失败边界：纳入access请求、非open请求或范围外用户；漏掉范围内对象；改写、删除或新增任一源表记录。
+可观察证据：privacy_requests筛选结果、五类对象关联结果、源库与结果库逐表比较。
+客观硬性标准：范围内对象完整且唯一，范围外请求为零，六张源表内容不变。
+阈值：16分；范围与源表均正确得满分，任一越界或源数据变化得0分。
+优先级：Gate项
+所属层级：L6领域计算与专业规则层
+
+3. 保留规则载入与优先级
+分值：16分
+标准答案：retention_rule完整载入三个例外；U004所有范围内对象由EX-LEGAL-HOLD覆盖，符合条件的订单使用EX-ORDER-TAX，符合条件的审计事件使用EX-AUDIT-SEC，法务保全优先。
+关键字段：exception_id、rule_kind、scope、user_id、order_statuses、event_types、created_from、retain_reason、retain_until。
+容差：JSON数组在SQLite中的等价文本布局可不同；规则行没有业务顺序。
+失败边界：漏载或误载规则；错误解释订单日期或状态；错误解释审计事件类型；U004对象被其他规则或非保留动作覆盖。
+可观察证据：retention_rule内容、条款JSON、object_action的exception_id与planned_action。
+客观硬性标准：三个规则的条件和值与输入一致，所有命中对象使用正确例外编号，法律保全冲突时优先。
+阈值：16分；规则载入6分，条件判定6分，优先级4分；出现法务保全漏保留时本项0分。
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+
+4. 逐对象动作
+分值：18分
+标准答案：object_action为范围内每个对象保留一行；计划动作只使用delete、anonymize_profile、retain_exception；不受例外约束的users采用anonymize_profile，其余普通对象采用delete，受例外约束的对象采用retain_exception并记录动作依据。
+关键字段：request_id、user_id、object_type、object_id、object_created_at、object_state、planned_action、exception_id、action_rationale。
+容差：动作依据允许等义表述；行序可按request_id、object_type、object_id规范化后比较。
+失败边界：对象重复或缺失；动作枚举错误；普通users被删除；保留对象缺少例外编号；删除或匿名化对象错误携带例外编号。
+可观察证据：object_action主键组合、动作分布、对象类型分布和输入对象关联。
+客观硬性标准：范围内对象一一对应，动作与规则相符，例外编号只出现在保留动作上，动作依据非空。
+阈值：18分；完整性6分，动作正确性8分，例外与依据4分；按可复算子项累计。
+优先级：高权重项
+所属层级：L7产物结构或Schema或专业对象层
+
+5. 保留登记闭合
+分值：14分
+标准答案：retention_register只含planned_action为retain_exception的对象，与object_action中的保留集合逐项相等，并从retention_rule带出正确retain_reason和retain_until。
+关键字段：request_id、user_id、object_type、object_id、exception_id、retain_reason、retain_until。
+容差：没有业务顺序，按请求与对象组合键重排后比较；日期采用输入中的ISO日期值。
+失败边界：登记包含非保留对象；漏登保留对象；对象或例外编号不匹配；保留原因或截止日期与规则不符。
+可观察证据：retention_register与object_action保留子集的集合差、与retention_rule的关联结果。
+客观硬性标准：两个保留集合双向差集均为空，每行原因和截止日期可追溯到同一例外编号。
+阈值：14分；集合闭合9分，条款字段5分；集合存在任一漏项或多项时集合部分0分。
+优先级：高权重项
+所属层级：L9跨产物一致性与可追溯层
+
+6. 窗口汇总与业务报告
+分值：14分
+标准答案：window_summary覆盖开放删除请求、动作总数、三类动作、三个例外、受影响用户和规则数量；object_actions.csv与object_action逐项一致，retention_register.csv与retention_register逐项一致。
+关键字段：metric、value及两份CSV的表头与业务记录。
+容差：metric行和无业务顺序的CSV行可重排；数值必须精确相等；CSV允许LF或CRLF。
+失败边界：缺少必需指标；汇总值不可由业务表复算；CSV列缺失、记录缺失、记录多出或字段值不同。
+可观察证据：window_summary与业务表聚合查询、两份CSV解析结果及对应SQLite表。
+客观硬性标准：每个汇总值均能从结果库复算，两份CSV与对应SQLite表双向一致。
+阈值：14分；汇总8分，两份报告各3分；按可复算子项累计。
+优先级：高权重项
+所属层级：L2软件或工具操作层
+
+7. 窗口审批结论
+分值：10分
+标准答案：window_decision.json关联窗口编号、计划时间、审批角色、回滚联系人、条款生效日期、三个规则编号和全部汇总；在范围、源表、关系、优先级及登记均闭合时decision为READY_FOR_APPROVAL且issues为空。
+关键字段：window_id、decision、issues、scheduled_start_utc、approver_role、rollback_contact、rule_effective_date、retention_rule_ids、totals、sqlite_version。
+容差：retention_rule_ids作为无序集合比较；sqlite_version按实际主软件版本记录；JSON键序和缩进可不同。
+失败边界：窗口字段与输入不符；规则集合或totals与结果库不一致；条件闭合却给出HOLD；存在业务问题却给出READY_FOR_APPROVAL。
+可观察证据：窗口JSON、条款JSON、window_summary和window_decision.json的交叉结果。
+客观硬性标准：窗口与规则字段准确，totals逐项等于window_summary，decision及issues与业务状态一致。
+阈值：10分；窗口字段3分，规则与汇总4分，结论3分；按可复算子项累计。
+优先级：普通项
+所属层级：L9跨产物一致性与可追溯层

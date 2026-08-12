@@ -1,0 +1,5 @@
+操作系统： Windows11、macOS或主流64位Linux。
+
+主软件使用SQLite3.43或更高版本，需支持JSON函数、readfile、DDL、查询、PRAGMA完整性检查和CSV输出。入口脚本使用支持ES模块与import.meta.dirname的Node.js长期支持版本，并通过npm启动。
+
+处理冻结数据库和本地JSON时，适合当前输入规模的通用CPU、内存与磁盘即可，不需要GPU。为SQLite命令设置覆盖当前批次的有限超时，避免异常等待占住删除窗口准备流程。

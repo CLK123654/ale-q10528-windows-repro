@@ -1,0 +1,7 @@
+{
+  "window_id": "PRIVACY-DEL-2026-08-15",
+  "scheduled_start_utc": "2026-08-15T02:00:00Z",
+  "approver_role": "privacy_operations_manager",
+  "rollback_contact": "data_governance_on_call",
+  "purpose": "prepare object actions and retention register before the deletion window"
+}

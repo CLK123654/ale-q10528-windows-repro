@@ -1,0 +1,36 @@
+{
+  "run_at": "2026-07-31",
+  "exceptions": [
+    {
+      "exception_id": "EX-ORDER-TAX",
+      "rule_kind": "order_tax",
+      "scope": "orders",
+      "retain_reason": "tax_window",
+      "retain_until": "2031-12-31",
+      "order_statuses": [
+        "paid",
+        "refunded"
+      ],
+      "created_from": "2026-01-01"
+    },
+    {
+      "exception_id": "EX-AUDIT-SEC",
+      "rule_kind": "audit_security",
+      "scope": "audit_events",
+      "retain_reason": "security_investigation",
+      "retain_until": "2028-12-31",
+      "event_types": [
+        "login_risk",
+        "chargeback"
+      ]
+    },
+    {
+      "exception_id": "EX-LEGAL-HOLD",
+      "rule_kind": "legal_hold",
+      "scope": "all",
+      "user_id": "U004",
+      "retain_reason": "legal_hold",
+      "retain_until": "2026-10-31"
+    }
+  ]
+}

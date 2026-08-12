@@ -1,0 +1,11 @@
+{
+  "name": "privacy-deletion-window-ledger",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "process": "node tools/run-task.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

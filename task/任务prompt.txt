@@ -1,0 +1,7 @@
+你是隐私运营工程师，正在为PRIVACY-DEL-2026-08-15删除窗口准备审批材料。已受理删除请求涉及用户资料、设备、订单、消息和审计事件，其中一部分对象受税务留存、风控调查或法务保全约束。数据平台值班需要明确的逐对象动作，合规复核人需要可追溯的保留登记，隐私运营负责人需要窗口结论。
+
+输入数据包提供四类实际输入：privacy_request.db冻结工单快照、retention_exceptions.json保留条款、window/deletion_window.json窗口说明和starter/rebuild_privacy_window.sql起始脚本。先检查六张源表、开放状态删除请求和窗口信息，再把当前保留条款载入SQLite。以开放状态的delete请求为范围，关联每名用户的users、devices、orders、messages和audit_events对象。法务保全优先于其他规则；符合税务条款的订单和符合风控条款的审计事件也需保留；不受例外约束的用户资料采用匿名化动作，其余对象采用删除动作。
+
+完成SQLite脚本并保存到output/sql/rebuild_privacy_window.sql。入口应复制冻结快照到output/privacy_window.db，在副本中建立retention_rule、object_action、retention_register和window_summary。object_action逐行记录请求、用户、对象类型、对象标识、对象时间、对象状态、计划动作、例外编号和动作依据。retention_register只登记计划保留的对象，并带出保留原因与截止日期。window_summary按固定metric、value两列汇总请求范围、动作数量、例外数量、受影响用户和规则数量。
+
+随后在input_data目录运行npm run process。入口从SQLite结果导出output/reports/object_actions.csv和output/reports/retention_register.csv，并生成output/window_decision.json。窗口结论需关联窗口编号、计划时间、审批角色、回滚联系人、条款生效日期、规则编号集合和window_summary汇总；只有冻结源表保持不变、数据库关系完整、请求范围正确、法务保全优先且保留登记与对象动作闭合时，结论才能进入READY_FOR_APPROVAL。交付物供数据平台值班安排对象处理、合规复核人核对保留责任、隐私运营负责人审批窗口。

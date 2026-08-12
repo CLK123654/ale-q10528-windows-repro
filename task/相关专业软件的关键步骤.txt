@@ -1,0 +1,6 @@
+1. 用SQLite打开privacy_request.db，检查users、privacy_requests、devices、orders、messages和audit_events六张源表，筛出request_type为delete且status为open的请求。
+2. 通过JSON函数读取retention_exceptions.json，建立retention_rule，并保留例外编号、规则类型、作用范围、原因、截止日期和各规则的限定条件。
+3. 关联开放删除请求与五类对象，在object_action中按法务保全优先、税务订单、风控审计、用户资料匿名化、其余删除的顺序写入逐对象动作。
+4. 从计划保留的对象建立retention_register，带出例外编号、保留原因和截止日期；按metric、value两列建立window_summary。
+5. 运行npm run process，让入口复制冻结数据库、执行完成SQL、导出两份CSV，并结合窗口说明形成window_decision.json。
+6. 核对源表未被改写、SQLite关系完整、请求范围正确、法务保全覆盖完整、保留登记与对象动作一致，再把动作清单、保留登记和窗口结论交给下游角色。
