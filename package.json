@@ -1,7 +1,4 @@
 {
   "private": true,
-  "type": "module",
-  "scripts": {
-    "verify": "node verification/verify.mjs"
-  }
+  "type": "module"
 }
